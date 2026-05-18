@@ -54,15 +54,39 @@ After setup, common commands (run from `app/`):
 
 ```bash
 make                             # Regenerate the Xcode project (default goal)
+make deps                        # Resolve/install Swift Package Manager dependencies
 make edit                        # Open Tuist's manifest editor for live-editing helpers with autocomplete
 make test                        # Run all tests
 make lint                        # SwiftLint strict check
 make format                      # SwiftFormat (2-space indent)
+make graph                       # Render a target dependency graph PNG (requires: brew install graphviz)
 make feature NAME=Settings                       # Scaffold Features/SettingsFeature/ + auto-wire into Project.swift
 make feature NAME=Settings WITH_CLIENT=Settings  # Scaffold SettingsFeature + paired SettingsClient, wire the dependency
 make client NAME=Auth            # Scaffold Features/AuthClient/ (Interface/LiveKey/TestKey)
 make clean                       # Remove generated files
 ```
+
+## Secrets
+
+API keys and URLs live in a gitignored `.env` file and are baked into a generated `Secrets.swift` at build time.
+
+```bash
+cp app/.env.example app/.env   # one-time: create your local secrets file
+# fill in the values, then:
+make secrets                   # regenerate Secrets.swift (or just `make`)
+```
+
+Keys in `.env` use `SCREAMING_SNAKE_CASE` and are exposed in Swift as `Secrets.<camelCase>`:
+
+```
+POEDITOR_API_KEY=abc123   →   Secrets.weatherApiKey
+BACKEND_BASE_URL=https://…  →  Secrets.backendBaseUrl
+```
+
+- `.env` is gitignored — never committed
+- `.env.example` is committed and documents the expected keys (values left blank)
+- If `.env` is missing, `make secrets` prints a **yellow warning** and generates empty strings so the build doesn't break
+- Add a new key: append `MY_KEY=` to `.env.example` (committed) and the real value to `.env` (local only)
 
 ## Customize for your app
 
@@ -72,6 +96,7 @@ After cloning, swap in your own values:
 - **Project name + bundle prefix** — edit `app/Tuist/ProjectDescriptionHelpers/AppConfig.swift` (e.g. change `projectName = "App"` and `bundlePrefix = "com.app"` to your reverse-DNS)
 - **Brand colors** — edit `app/Features/DesignSystem/Sources/Tokens/DesignColors.swift` (the `Color(hex:)` defaults for `brandPrimary`, `brandPrimaryForeground`)
 - **Strings** — edit `app/Features/DesignSystem/Resources/en.lproj/Localizable.strings`; drop in additional `<lang>.lproj/Localizable.strings` for more locales
+- **Secrets** — `cp app/.env.example app/.env` and fill in API keys / URLs. `make` regenerates `App/Sources/Generated/Secrets.swift` (gitignored) so they're accessible from Swift as e.g. `Secrets.exampleApiKey`
 
 ## Architecture
 

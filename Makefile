@@ -10,11 +10,10 @@ endif
 
 .DEFAULT_GOAL := generate
 
-.PHONY: setup generate edit test test-scheme lint lint-fix format install-tools clean clean-tools bootstrap feature client help
+.PHONY: setup generate edit test test-scheme lint lint-fix format install-tools clean clean-tools bootstrap feature client secrets graph deps help
 
-## First-time setup: install tools, download/link Tuist, generate Xcode project
-setup: install-tools bootstrap
-	$(TUIST) install
+## First-time setup: install tools, download/link Tuist, generate Secrets.swift, resolve SPM deps, generate Xcode project
+setup: install-tools bootstrap secrets deps
 	$(TUIST) generate --no-open
 
 ## Download or link Tuist binary to .tuist-bin/
@@ -29,16 +28,29 @@ feature:
 client:
 	@bash scripts/new-client.sh $(NAME)
 
+## Generate App/Sources/Generated/Secrets.swift from .env (idempotent — no-op if unchanged)
+secrets:
+	@bash scripts/generate-secrets.sh
+
+## Resolve/install Swift Package Manager dependencies (idempotent — Tuist caches)
+deps:
+	$(TUIST) install
+
 ## Regenerate Xcode project after any Project.swift or Package.swift change
-generate:
+generate: secrets deps
 	$(TUIST) generate
 
 ## Open a temporary Xcode workspace to edit Tuist manifests (Project.swift, helpers, Package.swift) with autocomplete
 edit:
 	$(TUIST) edit
 
+## Render a target dependency graph (PNG, app targets only; requires: brew install graphviz)
+graph:
+	@command -v dot &>/dev/null || (echo "✗ graphviz not installed. Run: brew install graphviz" && exit 1)
+	$(TUIST) graph --skip-external-dependencies
+
 ## Run all unit tests
-test:
+test: secrets deps
 	$(TUIST) test
 
 ## Run tests for a specific scheme: make test-scheme SCHEME=AppCoreFeature

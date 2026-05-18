@@ -3,6 +3,19 @@
 *.xcworkspace
 Derived/
 
+# Secrets generated from .env (committed: .env.example)
+.env
+App/Sources/Generated/
+# Catch-all for any future generated secrets file (e.g. RuntimeSecrets.swift,
+# AppSecrets.plist) so they can't be committed by accident.
+*Secrets.*
+
+# Tuist graph output (make graph)
+graph.png
+graph.svg
+graph.dot
+graph.json
+
 # Tuist binaries and build cache
 .tuist-bin/
 Tuist/.build/
