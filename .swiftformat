@@ -3,7 +3,7 @@
 --maxwidth 120
 --wraparguments before-first
 --wrapcollections before-first
---commas always
+--commas inline
 --semicolons never
 --trimwhitespace always
 --header strip
