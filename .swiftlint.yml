@@ -27,3 +27,6 @@ line_length:
 
 identifier_name:
   min_length: 2
+
+trailing_comma:
+  mandatory_comma: false

@@ -26,7 +26,8 @@ iOS 17+ deployment target.
 └── app/                            # Tuist workspace root
     ├── Tuist.swift                 # Tuist version compatibility
     ├── Project.swift               # All targets in one project
-    ├── Tuist/Package.swift         # SPM dependencies
+    ├── Package.swift               # SPM deps + command plugin targets (Tuist reads this too)
+    ├── Package.resolved            # Locked SPM versions (committed)
     ├── Tuist/ProjectDescriptionHelpers/        # Tuist compiles all .swift here into one helper module
     │   ├── AppConfig.swift                     # project name, bundle prefix, deployment target
     │   ├── TargetDependency+Named.swift        # .composableArchitecture, .designSystem, etc.
@@ -34,7 +35,7 @@ iOS 17+ deployment target.
     │   ├── FeatureTargetBuilder.swift          # builder + isRoot validation
     │   └── LayerEnforcement.swift              # assertNoRootDependencies free function
     ├── Makefile                    # Common dev commands (default goal: generate)
-    ├── scripts/                    # Bootstrap + scaffolding (auto-edit Project.swift)
+    ├── plugins/                    # SPM command plugins (new-feature, new-client, generate-secrets) + bootstrap binary
     ├── App/                        # App target — entry point only
     └── Features/
         ├── AppCoreFeature/         # Root reducer + view (NavigationStack push + sheet @Presents)
@@ -57,13 +58,17 @@ make                             # Regenerate the Xcode project (default goal)
 make deps                        # Resolve/install Swift Package Manager dependencies
 make edit                        # Open Tuist's manifest editor for live-editing helpers with autocomplete
 make test                        # Run all tests
+make test-scheme SCHEME=HapticClient  # Run tests for one scheme (use Tuist scheme names)
 make lint                        # SwiftLint strict check
+make lint-fix                    # Auto-fix SwiftLint violations
 make format                      # SwiftFormat (2-space indent)
 make graph                       # Render a target dependency graph PNG (requires: brew install graphviz)
 make feature NAME=Settings                       # Scaffold Features/SettingsFeature/ + auto-wire into Project.swift
 make feature NAME=Settings WITH_CLIENT=Settings  # Scaffold SettingsFeature + paired SettingsClient, wire the dependency
 make client NAME=Auth            # Scaffold Features/AuthClient/ (Interface/LiveKey/TestKey)
-make clean                       # Remove generated files
+make env                         # Create .env from .env.example (errors if .env already exists)
+make clean                       # Remove generated Xcode project and build artifacts
+make clean-tools                 # Remove downloaded Tuist binary and bootstrap build artifacts
 ```
 
 ## Secrets
@@ -71,7 +76,7 @@ make clean                       # Remove generated files
 API keys and URLs live in a gitignored `.env` file and are baked into a generated `Secrets.swift` at build time.
 
 ```bash
-cp app/.env.example app/.env   # one-time: create your local secrets file
+make env                       # one-time: create .env from .env.example
 # fill in the values, then:
 make secrets                   # regenerate Secrets.swift (or just `make`)
 ```
@@ -79,14 +84,14 @@ make secrets                   # regenerate Secrets.swift (or just `make`)
 Keys in `.env` use `SCREAMING_SNAKE_CASE` and are exposed in Swift as `Secrets.<camelCase>`:
 
 ```
-POEDITOR_API_KEY=abc123   →   Secrets.weatherApiKey
-BACKEND_BASE_URL=https://…  →  Secrets.backendBaseUrl
+EXAMPLE_API_KEY=abc123        →   Secrets.exampleApiKey
+BACKEND_BASE_URL=https://…   →   Secrets.backendBaseUrl
 ```
 
 - `.env` is gitignored — never committed
 - `.env.example` is committed and documents the expected keys (values left blank)
 - If `.env` is missing, `make secrets` prints a **yellow warning** and generates empty strings so the build doesn't break
-- Add a new key: append `MY_KEY=` to `.env.example` (committed) and the real value to `.env` (local only)
+- **Add a new key**: add `MY_KEY=` to `.env.example` (committed) and the real value to `.env` (local only), then add a `SecretEntry` to `plugins/generate-secrets/schema.swift` — the entry controls both the camelCase name and which Swift file it lands in (supports per-feature secrets files)
 
 ## Customize for your app
 
@@ -96,7 +101,7 @@ After cloning, swap in your own values:
 - **Project name + bundle prefix** — edit `app/Tuist/ProjectDescriptionHelpers/AppConfig.swift` (e.g. change `projectName = "App"` and `bundlePrefix = "com.app"` to your reverse-DNS)
 - **Brand colors** — edit `app/Features/DesignSystem/Sources/Tokens/DesignColors.swift` (the `Color(hex:)` defaults for `brandPrimary`, `brandPrimaryForeground`)
 - **Strings** — edit `app/Features/DesignSystem/Resources/en.lproj/Localizable.strings`; drop in additional `<lang>.lproj/Localizable.strings` for more locales
-- **Secrets** — `cp app/.env.example app/.env` and fill in API keys / URLs. `make` regenerates `App/Sources/Generated/Secrets.swift` (gitignored) so they're accessible from Swift as e.g. `Secrets.exampleApiKey`
+- **Secrets** — run `make env` (from `app/`) and fill in API keys / URLs. `make` regenerates `App/Sources/Generated/Secrets.swift` (gitignored) so they're accessible from Swift as e.g. `Secrets.exampleApiKey`. Declare new keys in `plugins/generate-secrets/schema.swift` to control their Swift name and destination file
 
 ## Architecture
 
