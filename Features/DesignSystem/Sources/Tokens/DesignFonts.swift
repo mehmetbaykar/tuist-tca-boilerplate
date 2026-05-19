@@ -8,10 +8,10 @@ public struct DesignFonts: Equatable, Sendable {
   public let note: Font // smaller, muted
   public let caption: Font // metadata, smallest
 
-  // Defaults are text-style-based so they scale automatically with the user's
-  // Dynamic Type setting (HIG-mandated accessibility). For pixel-precise display
-  // fonts (e.g. a giant temperature readout), override at init with
-  // `Font.custom("MyFont", size: 64, relativeTo: .largeTitle)`.
+  /// Defaults are text-style-based so they scale automatically with the user's
+  /// Dynamic Type setting (HIG-mandated accessibility). For pixel-precise display
+  /// fonts (e.g. a giant temperature readout), override at init with
+  /// `Font.custom("MyFont", size: 64, relativeTo: .largeTitle)`.
   public init(
     hero: Font = .system(.largeTitle, design: .serif).weight(.semibold),
     title: Font = .system(.title).weight(.semibold),
