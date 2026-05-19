@@ -10,7 +10,7 @@
 enum Schema {
   struct SecretEntry {
     let envKey: String       // Key in .env file (SCREAMING_SNAKE_CASE)
-    let destination: String  // Path relative to app/ root, including filename
+    let destination: String  // Path relative to project root, including filename
   }
 
   static let secrets: [SecretEntry] = [
