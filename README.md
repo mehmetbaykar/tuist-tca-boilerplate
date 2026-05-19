@@ -9,7 +9,7 @@ Early development. Architecture, design system, scaffolding, and reference featu
 ## Tech stack
 
 - **SwiftUI** + **The Composable Architecture** (TCA) — unidirectional state management
-- **Tuist 4.x** — project generation; pinned via `app/.tuist-version`
+- **Tuist 4.x** — project generation; pinned via `.tuist-version`
 - **Swift Testing** — unit tests (no XCTest)
 - **swift-snapshot-testing** — UI regression tests
 - **swift-dependencies** — dependency injection (bundled with TCA)
@@ -20,38 +20,42 @@ iOS 17+ deployment target.
 ## Repository layout
 
 ```
-.
-├── LICENSE
-├── README.md
-└── app/                            # Tuist workspace root
-    ├── Tuist.swift                 # Tuist version compatibility
-    ├── Project.swift               # All targets in one project
-    ├── Package.swift               # SPM deps + command plugin targets (Tuist reads this too)
-    ├── Package.resolved            # Locked SPM versions (committed)
-    ├── Tuist/ProjectDescriptionHelpers/        # Tuist compiles all .swift here into one helper module
-    │   ├── AppConfig.swift                     # project name, bundle prefix, deployment target
-    │   ├── TargetDependency+Named.swift        # .composableArchitecture, .designSystem, etc.
-    │   ├── InfoPlist+Default.swift             # InfoPlist.appDefault
-    │   ├── FeatureTargetBuilder.swift          # builder + isRoot validation
-    │   └── LayerEnforcement.swift              # assertNoRootDependencies free function
-    ├── Makefile                    # Common dev commands (default goal: generate)
-    ├── plugins/                    # SPM command plugins (new-feature, new-client, generate-secrets) + bootstrap binary
-    ├── App/                        # App target — entry point only
-    └── Features/
-        ├── AppCoreFeature/         # Root reducer + view (NavigationStack push + sheet @Presents)
-        ├── DesignSystem/           # Tokens, asset-catalog colors, button styles, Localizable.strings
-        ├── ExampleFeature/         # Reference counter feature, reachable via push and sheet
-        └── HapticClient/           # Reference dependency client (Interface/LiveKey/TestKey)
+.                                   # Tuist workspace root
+├── Tuist.swift                     # Tuist version compatibility
+├── Project.swift                   # All targets in one project
+├── Makefile                        # Common dev commands (default goal: generate)
+├── .tuist-version                  # Pinned Tuist version
+├── Package.swift               # SPM deps + command plugin targets (Tuist reads this too)
+├── Package.resolved            # Locked SPM versions (committed)
+├── Tuist/
+│   └── ProjectDescriptionHelpers/
+│       ├── AppConfig.swift         # project name, bundle prefix, deployment target
+│       ├── TargetDependency+Named.swift    # .composableArchitecture, .designSystem, etc.
+│       ├── InfoPlist+Default.swift         # InfoPlist.appDefault
+│       ├── FeatureTargetBuilder.swift      # builder + isRoot validation
+│       └── LayerEnforcement.swift          # assertNoRootDependencies free function
+├── plugins/                        # SPM command plugins
+│   ├── bootstrap/                  # Downloads/links Tuist to .tuist-bin/ (compiled Swift binary)
+│   ├── generate-secrets/           # Generates Secrets.swift from .env
+│   ├── new-feature/                # Scaffolds Features/<Name>Feature/
+│   └── new-client/                 # Scaffolds Features/<Name>Client/ (Interface/LiveKey/TestKey)
+├── App/                            # App target — entry point only
+│   ├── Sources/
+│   └── Resources/
+└── Features/
+    ├── AppCoreFeature/             # Root reducer + view (NavigationStack push + sheet @Presents)
+    ├── DesignSystem/               # Tokens, asset-catalog colors, button styles, Localizable.strings
+    ├── ExampleFeature/             # Reference counter feature, reachable via push and sheet
+    └── HapticClient/               # Reference dependency client (Interface/LiveKey/TestKey)
 ```
 
 ## Getting started
 
 ```bash
-cd app
 make setup                       # First-time: install tools, download Tuist, generate
 ```
 
-After setup, common commands (run from `app/`):
+After setup, common commands (run from project root):
 
 ```bash
 make                             # Regenerate the Xcode project (default goal)
@@ -97,11 +101,11 @@ BACKEND_BASE_URL=https://…   →   Secrets.backendBaseUrl
 
 After cloning, swap in your own values:
 
-- **App icon** — replace `app/App/Resources/Icon.xcassets/AppIcon.appiconset/icon.png` with your own 1024×1024 PNG (square, no rounded corners — iOS applies the mask)
-- **Project name + bundle prefix** — edit `app/Tuist/ProjectDescriptionHelpers/AppConfig.swift` (e.g. change `projectName = "App"` and `bundlePrefix = "com.app"` to your reverse-DNS)
-- **Brand colors** — edit `app/Features/DesignSystem/Sources/Tokens/DesignColors.swift` (the `Color(hex:)` defaults for `brandPrimary`, `brandPrimaryForeground`)
-- **Strings** — edit `app/Features/DesignSystem/Resources/en.lproj/Localizable.strings`; drop in additional `<lang>.lproj/Localizable.strings` for more locales
-- **Secrets** — run `make env` (from `app/`) and fill in API keys / URLs. `make` regenerates `App/Sources/Generated/Secrets.swift` (gitignored) so they're accessible from Swift as e.g. `Secrets.exampleApiKey`. Declare new keys in `plugins/generate-secrets/schema.swift` to control their Swift name and destination file
+- **App icon** — replace `App/Resources/Icon.xcassets/AppIcon.appiconset/icon.png` with your own 1024×1024 PNG (square, no rounded corners — iOS applies the mask)
+- **Project name + bundle prefix** — edit `Tuist/ProjectDescriptionHelpers/AppConfig.swift` (e.g. change `projectName = "App"` and `bundlePrefix = "com.app"` to your reverse-DNS)
+- **Brand colors** — edit `Features/DesignSystem/Sources/Tokens/DesignColors.swift` (the `Color(hex:)` defaults for `brandPrimary`, `brandPrimaryForeground`)
+- **Strings** — edit `Features/DesignSystem/Resources/en.lproj/Localizable.strings`; drop in additional `<lang>.lproj/Localizable.strings` for more locales
+- **Secrets** — run `make env` and fill in API keys / URLs. `make` regenerates `App/Sources/Generated/Secrets.swift` (gitignored) so they're accessible from Swift as e.g. `Secrets.exampleApiKey`. Declare new keys in `plugins/generate-secrets/schema.swift` to control their Swift name and destination file
 
 ## Architecture
 
