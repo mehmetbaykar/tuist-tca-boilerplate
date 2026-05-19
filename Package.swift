@@ -1,6 +1,4 @@
 // swift-tools-version: 5.10
-// Single source of truth for SPM dependencies and command plugins.
-// Tuist/Package.swift is a symlink to this file — both tools read the same content.
 
 @preconcurrency import PackageDescription
 
@@ -21,7 +19,6 @@ let package = Package(
     ),
   ],
   targets: [
-    // Generates App/Sources/Generated/Secrets.swift from .env.
     .plugin(
       name: "GenerateSecrets",
       capability: .command(
@@ -37,8 +34,6 @@ let package = Package(
       ),
       path: "plugins/generate-secrets"
     ),
-
-    // Scaffolds Features/<Name>Feature/ with TCA boilerplate and wires it into Project.swift.
     .plugin(
       name: "NewFeature",
       capability: .command(
@@ -54,8 +49,6 @@ let package = Package(
       ),
       path: "plugins/new-feature"
     ),
-
-    // Scaffolds Features/<Name>Client/ with Interface/LiveKey/TestKey split.
     .plugin(
       name: "NewClient",
       capability: .command(
