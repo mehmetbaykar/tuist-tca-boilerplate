@@ -102,7 +102,7 @@ clean:
 		-not -path "*/.tuist-bin/*" -exec rm -rf {} + 2>/dev/null || true
 	rm -rf .build
 
-## Remove downloaded Tuist binary and compiled script binaries
+## Remove downloaded Tuist binary and bootstrap build artifacts
 clean-tools:
 	rm -rf .tuist-bin plugins/.build
 
